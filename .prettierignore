@@ -1,0 +1,65 @@
+# 依赖包
+node_modules/
+
+# 构建输出
+packages/dist/
+dist/
+build/
+*.min.js
+*.min.css
+
+# API 自动生成的文件
+# packages/src/api/generated/
+packages/src/api/index.ts
+packages/src/api/mutator.ts
+
+# 日志文件
+*.log
+
+# 临时文件
+.DS_Store
+Thumbs.db
+
+# IDE 文件
+.vscode/
+.idea/
+
+# 构建工具配置
+.eslintrc.cjs
+.prettierrc.cjs
+.commitlintrc.cjs
+.lintstagedrc.cjs
+*.config.js
+*.config.ts
+
+# OpenAPI 相关文件
+openapi/
+orval.config.ts
+
+# 脚本文件
+scripts/
+
+# Markdown 文件（保持原有格式）
+README.md
+CHANGELOG.md
+
+# 包管理文件
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Git 相关
+.gitignore
+.gitattributes
+
+# ==================== AI Skills & Rules ====================
+# --- YSS AI SKILLS IGNORE START ---
+# 官方 Skills 为发布包派生资产，由 @yss-ui/skills-cli 托管同步，严禁本地 Prettier 格式化改写产生漂移
+.agents/
+.agent/
+.cursor/
+.claude/
+.trae/
+.codex/
+.cursorrules
+# --- YSS AI SKILLS IGNORE END ---

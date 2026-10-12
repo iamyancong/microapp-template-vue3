@@ -1,0 +1,92 @@
+{
+  "name": "microapp-template-vue3",
+  "version": "1.0.0",
+  "description": "Vue3 + TypeScript + Vite + Qiankun + YSS UI 前端微应用脚手架模版",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "cd packages && pnpm dev",
+    "dev:jsp-theme": "cd packages && pnpm dev:jsp-theme",
+    "build": "cd packages && pnpm build",
+    "build:jsp": "cd packages && pnpm build:jsp",
+    "build:jsp-theme": "cd packages && pnpm build:jsp-theme",
+    "sync:skills": "yss-skills sync && pnpm check:skills",
+    "check:skills": "node scripts/check-skills.mjs",
+    "check:agents": "node scripts/check-agent-rules.mjs",
+    "build:standalone": "cd packages && pnpm build:standalone",
+    "preview": "cd packages && pnpm preview",
+    "lint": "eslint packages/src --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix",
+    "lint:fix": "eslint packages/src --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix",
+    "lint:check": "eslint packages/src --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts",
+    "format": "prettier --write packages/src/",
+    "format:check": "prettier --check packages/src/",
+    "type-check": "cd packages && vue-tsc --noEmit",
+    "commit-check": "pnpm check:agents && pnpm check:skills && npm run lint:check && npm run format:check && npm run type-check",
+    "commitlint": "commitlint --from=HEAD~1 --to=HEAD --verbose",
+    "generate:api": "orval && node scripts/api-schema-cleanup.cjs && node scripts/api-flatten-exports.cjs && pnpm format:generated",
+    "format:generated": "prettier --write packages/src/api/generated/**/*.ts",
+    "prepare": "husky",
+    "check:i18n": "node scripts/check-i18n.mjs",
+    "test:performance": "node --test scripts/yss-ui-plugin.test.mjs scripts/yss-root-entry.test.mjs scripts/page-budget.test.mjs scripts/qiankun-css-reuse.test.mjs"
+  },
+  "keywords": [
+    "vue3",
+    "typescript",
+    "qiankun",
+    "micro-frontend",
+    "microapp",
+    "data-platform",
+    "vite",
+    "ant-design-vue"
+  ],
+  "author": "iamyancong",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/iamyancong/microapp-template-vue3.git"
+  },
+  "homepage": "https://github.com/iamyancong/microapp-template-vue3#readme",
+  "devDependencies": {
+    "@commitlint/cli": "^19.8.1",
+    "@commitlint/config-conventional": "^19.8.1",
+    "@types/node": "^20.10.0",
+    "@typescript-eslint/eslint-plugin": "^6.14.0",
+    "@typescript-eslint/parser": "^6.14.0",
+    "@vitejs/plugin-vue": "^6.0.8",
+    "@vue/eslint-config-prettier": "^8.0.0",
+    "@vue/eslint-config-typescript": "^12.0.0",
+    "@vue/tsconfig": "^0.5.1",
+    "@yss-ui/skills-cli": "^1.0.14",
+    "concurrently": "^8.2.2",
+    "cors": "^2.8.5",
+    "eslint": "^8.56.0",
+    "eslint-import-resolver-alias": "^1.1.2",
+    "eslint-import-resolver-typescript": "^4.4.4",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-vue": "^9.19.2",
+    "express": "^4.19.2",
+    "husky": "^9.1.7",
+    "less": "^4.2.0",
+    "lint-staged": "^16.1.5",
+    "orval": "^6.24.0",
+    "prettier": "^3.1.1",
+    "typescript": "6.0.2",
+    "vite": "^5.0.8",
+    "vite-plugin-mock": "^3.0.0",
+    "vite-plugin-qiankun": "^1.0.15",
+    "vue-tsc": "^3.3.9"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
+  },
+  "packageManager": "pnpm@10.15.0",
+  "dependencies": {
+    "json-bigint": "^1.0.0"
+  },
+  "pnpm": {
+    "overrides": {
+      "esbuild": "0.24.2"
+    }
+  }
+}

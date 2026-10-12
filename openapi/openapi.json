@@ -1,0 +1,277 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "项目示例 API",
+    "version": "v1.0.0",
+    "description": "提供数据质量规则的 CRUD 示例接口，用于展示前端模版的接口调用机制。"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000"
+    }
+  ],
+  "tags": [
+    {
+      "name": "QualityRuleController",
+      "description": "数据质量规则示例控制器"
+    }
+  ],
+  "paths": {
+    "/api/quality/rule/page": {
+      "post": {
+        "summary": "分页查询质量规则",
+        "tags": [
+          "QualityRuleController"
+        ],
+        "operationId": "pageQualityRule",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QualityRulePage"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PageResultQualityBusinessRuleVO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/quality/rule/{id}": {
+      "get": {
+        "summary": "查询质量规则详情",
+        "tags": [
+          "QualityRuleController"
+        ],
+        "operationId": "detailQualityRule",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SingleResultQualityBusinessRuleVO"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "删除质量规则",
+        "tags": [
+          "QualityRuleController"
+        ],
+        "operationId": "deleteQualityRule",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SingleResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/quality/rule": {
+      "post": {
+        "summary": "新增质量规则",
+        "tags": [
+          "QualityRuleController"
+        ],
+        "operationId": "addQualityRule",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QualityRuleAddCmd"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SingleResult"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "更新质量规则",
+        "tags": [
+          "QualityRuleController"
+        ],
+        "operationId": "updateQualityRule",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QualityRuleUpdateCmd"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SingleResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "QualityRulePage": {
+        "type": "object",
+        "properties": {
+          "pageIndex": {
+            "type": "integer",
+            "default": 1
+          },
+          "pageSize": {
+            "type": "integer",
+            "default": 10
+          },
+          "ruleName": {
+            "type": "string"
+          }
+        }
+      },
+      "QualityBusinessRuleVO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "ruleName": {
+            "type": "string"
+          },
+          "ruleCode": {
+            "type": "string"
+          },
+          "status": {
+            "type": "integer"
+          }
+        }
+      },
+      "PageResultQualityBusinessRuleVO": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "totalCount": {
+            "type": "integer"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/QualityBusinessRuleVO"
+            }
+          }
+        }
+      },
+      "SingleResultQualityBusinessRuleVO": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/QualityBusinessRuleVO"
+          }
+        }
+      },
+      "QualityRuleAddCmd": {
+        "type": "object",
+        "required": [
+          "ruleName",
+          "ruleCode"
+        ],
+        "properties": {
+          "ruleName": {
+            "type": "string"
+          },
+          "ruleCode": {
+            "type": "string"
+          }
+        }
+      },
+      "QualityRuleUpdateCmd": {
+        "type": "object",
+        "required": [
+          "id"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "ruleName": {
+            "type": "string"
+          }
+        }
+      },
+      "SingleResult": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "code": {
+            "type": "integer"
+          }
+        }
+      }
+    }
+  }
+}

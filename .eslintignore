@@ -1,0 +1,4 @@
+packages/src/api/generated/
+packages/dist/
+node_modules/
+

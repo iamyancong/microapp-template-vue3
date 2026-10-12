@@ -1,0 +1,5 @@
+# 运行 commitlint 检查提交信息格式
+echo "📝 正在检查提交信息格式..."
+npx --no-install commitlint --edit "$1"
+
+echo "✅ 提交信息格式正确！"

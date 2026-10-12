@@ -1,0 +1,63 @@
+name: Deploy MicroApp
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build & Package
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.15.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Application
+        env:
+          VITE_PROXY_TARGET: ${{ secrets.VITE_PROXY_TARGET }}
+          VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL || '/api' }}
+        run: pnpm build
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: packages/dist/
+          retention-days: 7
+
+  deploy-ssh:
+    name: Deploy to Server (Optional)
+    needs: build
+    runs-on: ubuntu-latest
+    if: "${{ secrets.SERVER_SSH_KEY != '' && vars.SERVER_HOST != '' }}"
+    steps:
+      - name: Download Build Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+
+      - name: Deploy via SSH (rsync)
+        uses: easingthemes/ssh-deploy@v5.0.0
+        with:
+          SSH_PRIVATE_KEY: ${{ secrets.SERVER_SSH_KEY }}
+          REMOTE_HOST: ${{ vars.SERVER_HOST }}
+          REMOTE_USER: ${{ vars.SERVER_USER || 'deploy' }}
+          TARGET: ${{ vars.SERVER_DEPLOY_DIR || '/var/www/html/microapp' }}
+          SOURCE: "dist/"

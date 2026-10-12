@@ -1,0 +1,5 @@
+# 运行 lint-staged 进行代码检查和格式化
+echo "🔍 正在运行代码检查和格式化..."
+npx lint-staged
+
+echo "✅ 代码检查通过，提交继续..."

@@ -1,0 +1,66 @@
+/**
+ * English common and system base language pack
+ */
+export default {
+  common: {
+    switchLanguageTitle: 'Switch language',
+    switchLanguageConfirm: 'Switching language reloads this page. Unsaved changes may be lost. Continue?',
+    confirmReload: 'Confirm and reload',
+    defaultSpace: 'Default space',
+
+    languageLoadFailed: 'Language resources could not be loaded. Please try again.',
+    confirm: 'Confirm',
+    cancel: 'Cancel',
+    save: 'Save',
+    search: 'Search',
+    reset: 'Reset',
+    add: 'Add',
+    edit: 'Edit',
+    delete: 'Delete',
+    submit: 'Submit',
+    back: 'Back',
+    operation: 'Actions',
+    status: 'Status',
+    remark: 'Remark',
+    createTime: 'Created At',
+    updateTime: 'Updated At',
+    loading: 'Loading...',
+    noData: 'No Data',
+    success: 'Operation succeeded',
+    failed: 'Operation failed',
+    confirmDelete: 'Are you sure to delete this record?',
+    execute: 'Execute',
+    view: 'View',
+    close: 'Close',
+    select: 'Please select',
+    input: 'Please input',
+    total: 'Total {total} items',
+    more: 'More',
+  },
+  app: {
+    name: 'MicroApp Platform',
+  },
+  route: {
+    login: 'Login',
+    demoTable: 'Test YSSUITable',
+    notFound: 'Page Not Found',
+  },
+  exception: {
+    notFound: 'Page Not Found',
+    notFoundSubTitle: 'Sorry, the page you visited does not exist: {path}',
+    backHome: 'Back to Home',
+  },
+  menu: {
+    help: 'Help',
+    notifications: 'Notifications',
+    profile: 'Profile',
+    settings: 'Settings',
+    logout: 'Logout',
+  },
+  validate: {
+    required: 'Please enter {field}',
+    selectRequired: 'Please select {field}',
+    email: 'Please enter a valid email address',
+    phone: 'Please enter a valid phone number',
+  },
+};
