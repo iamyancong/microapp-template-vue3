@@ -45,7 +45,7 @@ jobs:
     name: Deploy to Server (Optional)
     needs: build
     runs-on: ubuntu-latest
-    if: "${{ secrets.SERVER_SSH_KEY != '' && vars.SERVER_HOST != '' }}"
+    if: secrets.SERVER_SSH_KEY != '' && vars.SERVER_HOST != ''
     steps:
       - name: Download Build Artifacts
         uses: actions/download-artifact@v4
