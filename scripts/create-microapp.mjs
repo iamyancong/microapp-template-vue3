@@ -63,6 +63,8 @@ function printHelp() {
   --api-base <path>              接口 Base 地址 (默认: /api)
   --openapi-url <url>            OpenAPI 地址 (可选)
   --latest-deps                  显式追最新依赖并刷新锁文件（默认沿用模板版本）
+  --skip-skills                  不同步 skills（由调用方负责，如 @yss-ui/create）
+  --no-summary                   不打印结尾的 Created microapp / Next steps（由调用方负责）
   --interactive                  进入交互式模式 (如不带任何参数也会进入)
   --help, -h                     显示帮助
 
@@ -567,25 +569,29 @@ async function main() {
     }
   }
 
-  // 直接使用当前仓库已安装的 skills-cli（Node）同步最新 skills，避免在新项目里先执行 pnpm install
-  console.log('\n📦 同步最新 skills...')
-  const skillsCliBin = await resolveSkillsCliBin()
+  // @yss-ui/create 等调用方传 --skip-skills 时由其自行同步，这里不再同步也不告警
+  const skipSkills = Boolean(args['skip-skills'])
   let skillsSynced = false
-  if (skillsCliBin) {
-    try {
-      await runCommand('node', [skillsCliBin, 'sync'], targetRoot)
-      await runCommand('node', ['scripts/check-skills.mjs'], targetRoot)
-      skillsSynced = true
-      console.log('  ✓ skills 同步完成（Node CLI）')
-    } catch (e) {
-      console.warn(`[WARN] Node 方式同步 skills 失败：${e instanceof Error ? e.message : String(e)}`)
+  if (!skipSkills) {
+    // 直接使用当前仓库已安装的 skills-cli（Node）同步最新 skills，避免在新项目里先执行 pnpm install
+    console.log('\n📦 同步最新 skills...')
+    const skillsCliBin = await resolveSkillsCliBin()
+    if (skillsCliBin) {
+      try {
+        await runCommand('node', [skillsCliBin, 'sync'], targetRoot)
+        await runCommand('node', ['scripts/check-skills.mjs'], targetRoot)
+        skillsSynced = true
+        console.log('  ✓ skills 同步完成（Node CLI）')
+      } catch (e) {
+        console.warn(`[WARN] Node 方式同步 skills 失败：${e instanceof Error ? e.message : String(e)}`)
+      }
+    } else {
+      console.warn('[WARN] 未找到可执行的 @yss-ui/skills-cli，跳过 Node 同步。')
     }
-  } else {
-    console.warn('[WARN] 未找到可执行的 @yss-ui/skills-cli，跳过 Node 同步。')
-  }
 
-  if (!skillsSynced) {
-    console.warn('[WARN] skills 未自动同步，请确认仓库已安装 @yss-ui/skills-cli 或通过环境变量指定 YSS_SKILLS_CLI_BIN')
+    if (!skillsSynced) {
+      console.warn('[WARN] skills 未自动同步，请确认仓库已安装 @yss-ui/skills-cli 或通过环境变量指定 YSS_SKILLS_CLI_BIN')
+    }
   }
 
   // Remove scaffold UI & api in generated project
@@ -685,11 +691,15 @@ async function main() {
     await gitInitAndPush(targetRoot, remoteUrl)
   }
 
-  // Done
+  // 调用方传 --no-summary 时由其输出后续步骤，避免出现两份不一致的提示
+  if (args['no-summary']) return
+
   // Print next steps
   const steps = [
     `cd ${targetRoot}`,
-    skillsSynced ? '(skills 已自动同步)' : '(skills 未自动同步，请检查 @yss-ui/skills-cli 安装或 YSS_SKILLS_CLI_BIN)',
+    ...(skipSkills
+      ? []
+      : [skillsSynced ? '(skills 已自动同步)' : '(skills 未自动同步，请检查 @yss-ui/skills-cli 安装或 YSS_SKILLS_CLI_BIN)']),
     openapiUrl ? 'pnpm generate:api' : '(optional) pnpm generate:api',
     'pnpm install --frozen-lockfile',
     'pnpm dev'

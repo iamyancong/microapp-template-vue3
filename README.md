@@ -271,10 +271,23 @@ pnpm build
 
 如有问题或建议，请提交 Issue 或联系项目维护者。
 
+## 从模板创建微应用 (`scripts/create-microapp.mjs`)
+
+推荐日常使用 [`@yss-ui/create`](https://github.com/iamyancong/yss-ui)（`npm create yss-app@latest`）。CLI 会从本仓库拉取模板并调用本脚本；也会把 skills 同步与结尾提示统一放在 CLI 侧处理。
+
+直接在本仓库运行脚本时，常用参数见 `node scripts/create-microapp.mjs --help`。与 CLI 配合时额外支持：
+
+| 参数 | 说明 |
+| --- | --- |
+| `--skip-skills` | 不在模板内同步 skills（由 `@yss-ui/create` 在生成后统一同步最新版） |
+| `--no-summary` | 不打印 `Created microapp` / `Next steps`（由 CLI 输出「后续快速开始」） |
+
+CLI 调用时会固定传入上述两个参数，并设置环境变量 `YSS_CREATE_DRIVER=cli`。不带这两个参数时，脚本行为与以前一致（模板内尝试同步 skills，并打印自己的下一步提示）。
+
 ## YSS UI 与 Skills 升级
 
 - 模板已接入发布的 `@yss-ui/components@1.7.0` 同包 Vite 插件，业务继续根入口具名导入；普通、JSP、主题与独立构建共用版本检测适配器。
 - 根目录安装依赖后执行 `pnpm sync:skills`，使用 `@yss-ui/skills-cli` 从 `@yss-ui/skills` 同步默认业务技能。不要安装旧的 `@yss/skills-cli`：它读取内网旧 Skills 包，会按旧清单删除国际化等较新技能。
 - 同步后自动执行 `pnpm check:skills`，检查官方来源、关键技能、规则索引和 IDE 链接。`.agents/skills` 是发布包派生副本，不手工修改；提交钩子也不格式化这些副本。
-- 创建微应用脚本使用同一新版 CLI 和校验，生成的新项目继承这套接入方式。
+- 通过 `@yss-ui/create` 创建的项目会在 CLI 侧自动同步最新 Skills；直接运行本脚本时仍可在模板内同步（除非传入 `--skip-skills`）。
 - 根目录与 `packages` 各有独立依赖及 lockfile，升级后两处都需要安装；仅修改 `packages/package.json` 不会改变实际安装版本。
