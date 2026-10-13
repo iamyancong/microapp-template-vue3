@@ -27,6 +27,49 @@ test('只解析属于当前 activeRule 的完整路由', () => {
   );
 });
 
+test('支持本地独立运行时的全路径及根路径解析', () => {
+  assert.equal(
+    resolveMicroAppFullPath('/subApp/dataSource', {
+      pathname: '/subApp/dataSource/table',
+      search: '',
+      hash: '',
+    }),
+    '/table'
+  );
+  assert.equal(
+    resolveMicroAppFullPath('/subApp/dataSource', {
+      pathname: '/subApp/dataSource',
+      search: '',
+      hash: '',
+    }),
+    '/'
+  );
+  assert.equal(
+    resolveMicroAppFullPath('/subApp/dataSource', {
+      pathname: '/subApp/dataSource/',
+      search: '',
+      hash: '',
+    }),
+    '/'
+  );
+  assert.equal(
+    resolveMicroAppFullPath('/subApp/dataSource', {
+      pathname: '/table',
+      search: '',
+      hash: '',
+    }),
+    null
+  );
+  assert.equal(
+    resolveMicroAppFullPath('/subApp/dataSource', {
+      pathname: '/',
+      search: '',
+      hash: '',
+    }),
+    null
+  );
+});
+
 test('主应用同步事件保留 query 和 hash', () => {
   assert.equal(
     resolveMicroAppEventPath(

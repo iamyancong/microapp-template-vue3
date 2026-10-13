@@ -19,10 +19,14 @@ export default defineConfig(({ mode, command }) => {
   // 判断是否独立部署
   const isStandalone = env.VITE_STANDALONE_DEPLOY === 'true';
 
-  // 独立部署时使用根路径 '/'，集成到主应用时使用子应用路径
-  // 移除 activeRule 开头的斜杠，避免出现双斜杠
+  // 生产环境：独立部署时使用根路径 '/'，集成到主应用时使用去掉 subApp/ 前缀的子应用路径
+  // 本地开发环境：统一使用完整 activeRule 路径作为 base，使本地 URL 与线上主应用菜单路由完全一致
   const cleanActiveRule = (activeRule || '').replace(/^\//, '').replace(/^subApp\//, '');
-  const base = isProd && !isStandalone ? `/${cleanActiveRule}/` : '/';
+  const normalizeBase = (rule: string) => {
+    const withLeading = rule.startsWith('/') ? rule : `/${rule}`;
+    return withLeading.endsWith('/') ? withLeading : `${withLeading}/`;
+  };
+  const base = isProd ? (!isStandalone ? `/${cleanActiveRule}/` : '/') : normalizeBase(activeRule);
 
   return {
     base: base,
@@ -39,6 +43,24 @@ export default defineConfig(({ mode, command }) => {
         logger: true,
         watchFiles: true,
       }),
+      // 本地开发独立运行时，访问根路径自动重定向至完整微应用 base
+      {
+        name: 'dev-root-redirect',
+        apply: 'serve' as const,
+        configureServer(server: any) {
+          server.middlewares.use((req: any, res: any, next: any) => {
+            const rawUrl = req.url || '';
+            const pathname = rawUrl.split('?')[0];
+            if (pathname === '/' || pathname === '') {
+              const queryString = rawUrl.includes('?') ? rawUrl.slice(rawUrl.indexOf('?')) : '';
+              res.writeHead(302, { Location: `${base}${queryString}` });
+              res.end();
+              return;
+            }
+            next();
+          });
+        },
+      },
     ],
     resolve: {
       alias: {

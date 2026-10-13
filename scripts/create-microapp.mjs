@@ -5,7 +5,7 @@
 //   --name microapp-demo \
 //   --target-dir ../ \
 //   --port 8082 \
-//   --active-rule /micro \
+//   --active-rule /subApp/microapp-demo \
 //   --api-base /api \
 //   [--openapi-url http://host/openapi.json]
 
@@ -59,7 +59,7 @@ function printHelp() {
   --name <string>                微应用名称 (默认: microapp-<timestamp>)
   --target-dir <path>            目标目录 (默认: 上级目录 ../)
   --port <number>                本地开发端口 (默认: 8081)
-  --active-rule <path>           微应用激活路由前缀 (默认: /micro)
+  --active-rule <path>           微应用激活路由前缀 (默认: /subApp/<name>)
   --api-base <path>              接口 Base 地址 (默认: /api)
   --openapi-url <url>            OpenAPI 地址 (可选)
   --latest-deps                  显式追最新依赖并刷新锁文件（默认沿用模板版本）
@@ -73,7 +73,7 @@ function printHelp() {
     --name your-app \\
     --target-dir ../ \\
     --port 8083 \\
-    --active-rule /micro \\
+    --active-rule /subApp/your-app \\
     --api-base /api \\
     --openapi-url http://your-host/v3/api-docs
 
@@ -172,17 +172,26 @@ async function updateJson(filePath, updater) {
   await fs.writeFile(filePath, JSON.stringify(updated, null, 2) + '\n', 'utf8')
 }
 
-async function writeEnvFiles(targetRoot, _appName, apiBase, activeRule, proxyTarget) {
-  // 去掉首斜杠
-  const subAppName = activeRule.replace(/^\//, '')
-  const devEnv = `VITE_SUB_APP_NAME=${subAppName}\nVITE_API_BASE_URL=${apiBase}\nVITE_ACTIVE_RULE=/subApp${activeRule}\nVITE_PROXY_TARGET=${proxyTarget}\n`
-  const prodEnv = `VITE_SUB_APP_NAME=${subAppName}\nVITE_API_BASE_URL=${apiBase}\nVITE_ACTIVE_RULE=/subApp${activeRule}\nVITE_PROXY_TARGET=${proxyTarget}\n`
-  // jsp 环境下 VITE_API_BASE_URL 固定为 mdm
-  const prodJspEnv = `VITE_SUB_APP_NAME=${subAppName}\nVITE_API_BASE_URL=mdm\nVITE_ACTIVE_RULE=/subApp${activeRule}\nVITE_PROXY_TARGET=${proxyTarget}\nVITE_IS_JSP=true\n`
+function normalizeFullActiveRule(rule, appName) {
+  const targetRule = rule ? String(rule).trim() : `/subApp/${appName}`
+  const withLeading = targetRule.startsWith('/') ? targetRule : `/${targetRule}`
+  return withLeading.startsWith('/subApp/') ? withLeading : `/subApp${withLeading}`
+}
+
+async function writeEnvFiles(targetRoot, appName, apiBase, activeRule, proxyTarget) {
+  const fullActiveRule = normalizeFullActiveRule(activeRule, appName)
+  const subAppName = fullActiveRule.replace(/^\/subApp\//, '') || appName
+
+  const devEnv = `VITE_SUB_APP_NAME=${subAppName}\nVITE_API_BASE_URL=${apiBase}\nVITE_ACTIVE_RULE=${fullActiveRule}\nVITE_PROXY_TARGET=${proxyTarget}\n`
+  const prodEnv = `VITE_SUB_APP_NAME=${subAppName}\nVITE_API_BASE_URL=${apiBase}\nVITE_ACTIVE_RULE=${fullActiveRule}\nVITE_PROXY_TARGET=${proxyTarget}\nVITE_STANDALONE_DEPLOY=false\nVITE_STANDALONE_LAYOUT=true\n`
+  const prodJspEnv = `VITE_SUB_APP_NAME=${subAppName}\nVITE_API_BASE_URL=${apiBase}\nVITE_ACTIVE_RULE=${fullActiveRule}\nVITE_PROXY_TARGET=${proxyTarget}\nVITE_IS_JSP=true\nVITE_STANDALONE_DEPLOY=false\n`
 
   // JSP 主题环境
-  const devJspThemeEnv = `VITE_SUB_APP_NAME=${subAppName}\nVITE_API_BASE_URL=${apiBase}\nVITE_ACTIVE_RULE=/subApp${activeRule}\nVITE_PROXY_TARGET=${proxyTarget}\nVITE_JSP_THEME=classic-blue\n`
-  const prodJspThemeEnv = `VITE_SUB_APP_NAME=${subAppName}\nVITE_API_BASE_URL=mdm\nVITE_ACTIVE_RULE=/subApp${activeRule}\nVITE_PROXY_TARGET=${proxyTarget}\nVITE_IS_JSP=true\nVITE_JSP_THEME=classic-blue\n`
+  const devJspThemeEnv = `VITE_SUB_APP_NAME=${subAppName}\nVITE_API_BASE_URL=${apiBase}\nVITE_ACTIVE_RULE=${fullActiveRule}\nVITE_PROXY_TARGET=${proxyTarget}\nVITE_JSP_THEME=classic-blue\n`
+  const prodJspThemeEnv = `VITE_SUB_APP_NAME=${subAppName}\nVITE_API_BASE_URL=${apiBase}\nVITE_ACTIVE_RULE=${fullActiveRule}\nVITE_PROXY_TARGET=${proxyTarget}\nVITE_IS_JSP=true\nVITE_JSP_THEME=classic-blue\n`
+
+  // 独立部署生产环境
+  const standaloneEnv = `# 独立部署专用环境变量\n# 通过 pnpm build:standalone 触发\n\nVITE_SUB_APP_NAME=${subAppName}\nVITE_API_BASE_URL=${apiBase}\nVITE_ACTIVE_RULE=${fullActiveRule}\nVITE_PROXY_TARGET=${proxyTarget}\n\n# 独立部署标志\nVITE_STANDALONE_DEPLOY=true\n# 独立部署时是否强制显示布局菜单\nVITE_STANDALONE_LAYOUT=true\n`
 
   const pkgRoot = path.join(targetRoot, 'packages')
   await ensureDir(pkgRoot)
@@ -191,6 +200,7 @@ async function writeEnvFiles(targetRoot, _appName, apiBase, activeRule, proxyTar
   await fs.writeFile(path.join(pkgRoot, '.env.production.jsp'), prodJspEnv, 'utf8')
   await fs.writeFile(path.join(pkgRoot, '.env.development.jsp-theme'), devJspThemeEnv, 'utf8')
   await fs.writeFile(path.join(pkgRoot, '.env.production.jsp-theme'), prodJspThemeEnv, 'utf8')
+  await fs.writeFile(path.join(pkgRoot, '.env.production.standalone'), standaloneEnv, 'utf8')
 }
 
 async function writeNpmrc(targetRoot) {
@@ -352,8 +362,9 @@ async function askQuestions(defaults) {
     answers.targetDir = (await rl.question(`请输入目标目录 [${defaults.targetDir}]: `)) || defaults.targetDir
     const portStr = (await rl.question(`请输入本地端口 [${defaults.port}]: `)) || String(defaults.port)
     answers.port = Number(portStr)
+    const defaultActiveRule = `/subApp/${answers.appName}`
     answers.activeRule =
-      (await rl.question(`请输入激活路由前缀(如 /micro) [${defaults.activeRule}]: `)) || defaults.activeRule
+      (await rl.question(`请输入激活路由前缀(如 /subApp/my-app) [${defaultActiveRule}]: `)) || defaultActiveRule
     answers.apiBase = (await rl.question(`请输入接口 Base(如 /api) [${defaults.apiBase}]: `)) || defaults.apiBase
     answers.proxyTarget =
       (await rl.question(`请输入代理目标(如 http://127.0.0.1:3000) [${defaults.proxyTarget}]: `)) ||
@@ -447,7 +458,6 @@ async function main() {
     appName: 'microapp-' + Date.now(),
     targetDir: path.resolve(process.cwd(), '..'),
     port: 8081,
-    activeRule: '/micro',
     apiBase: '/api',
     proxyTarget: 'http://localhost:3000'
   }
@@ -476,7 +486,7 @@ async function main() {
     appName = String(args.name || defaults.appName)
     targetDir = path.resolve(String(args['target-dir'] || defaults.targetDir))
     port = Number(args.port || defaults.port)
-    activeRule = String(args['active-rule'] || defaults.activeRule)
+    activeRule = String(args['active-rule'] || `/subApp/${appName}`)
     apiBase = String(args['api-base'] || defaults.apiBase)
     proxyTarget = String(args['proxy-target'] || defaults.proxyTarget)
     openapiUrl = args['openapi-url'] ? String(args['openapi-url']) : ''
@@ -544,17 +554,18 @@ async function main() {
   ])
 
   // Update micro-config.json
+  const fullActiveRule = normalizeFullActiveRule(activeRule, appName)
   await updateJson(path.join(targetRoot, 'micro-config.json'), json => {
     json.app = json.app || {}
     json.app.name = appName
     json.app.port = port
-    json.app.entry = `http://localhost:${port}`
-    json.app.activeRule = activeRule
+    json.app.entry = `http://localhost:${port}${fullActiveRule}/`
+    json.app.activeRule = fullActiveRule
     return json
   })
 
   // Write env files
-  await writeEnvFiles(targetRoot, appName, apiBase, activeRule, proxyTarget)
+  await writeEnvFiles(targetRoot, appName, apiBase, fullActiveRule, proxyTarget)
 
   // Write .npmrc from current repo if exists
   await writeNpmrc(targetRoot)

@@ -6,11 +6,11 @@
     "name": "数据中台微应用",
     "description": "数据中台业务功能模块",
     "path": "packages",
-    "entry": "http://localhost:8081",
+    "entry": "http://localhost:8081/subApp/dataSource/",
     "port": 8081,
     "type": "micro",
     "framework": "vue3",
-    "activeRule": "/micro",
+    "activeRule": "/subApp/dataSource",
     "container": "#microapp-container",
     "features": ["数据管理", "业务页面", "API 服务", "Mock 服务", "独立部署"]
   },

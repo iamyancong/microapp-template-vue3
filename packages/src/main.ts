@@ -69,21 +69,28 @@ async function render(props: MicroAppLifecycleProps = {}) {
   // 判断运行环境：
   // 1. qiankun环境（被主应用加载）
   // 2. JSP环境（打包后嵌入JSP页面）
-  // 3. 本地开发环境（独立运行）
+  // 3. 独立部署生产环境（单体独立部署）
+  // 4. 本地开发环境（独立运行，统一使用 activeRule 完整前缀）
   const isJSP = import.meta.env.VITE_IS_JSP === 'true';
   const isInQiankun = qiankunWindow.__POWERED_BY_QIANKUN__;
+  const isStandaloneDeploy = import.meta.env.VITE_STANDALONE_DEPLOY === 'true';
+
+  const normalizeBase = (v: string) => (v.endsWith('/') ? v : `${v}/`);
 
   if (isInQiankun) {
-    // qiankun 环境：使用 History 模式，带子应用路径前缀
-    const normalizeBase = (v: string) => (v.endsWith('/') ? v : `${v}/`);
+    // qiankun 环境（优先级最高，即使是 standalone 产物嵌入也以主应用路由为准）：使用 History 模式，带子应用路径前缀
     const base = normalizeBase(activeRule);
     history = createWebHistory(base);
   } else if (isJSP) {
     // JSP 打包环境：使用 Hash 模式
     history = createWebHashHistory();
-  } else {
-    // 本地开发环境：使用 History 模式，根路径
+  } else if (isStandaloneDeploy) {
+    // 独立部署生产环境（非 qiankun 嵌入）：使用 History 模式，根路径
     history = createWebHistory('/');
+  } else {
+    // 本地开发独立运行环境：使用 History 模式，带子应用路径前缀
+    const base = normalizeBase(activeRule);
+    history = createWebHistory(base);
   }
 
   router = createRouter({
@@ -92,18 +99,18 @@ async function render(props: MicroAppLifecycleProps = {}) {
   });
 
   /**
-   * 初始导航矫正守卫（仅 qiankun 环境生效）
+   * 初始导航矫正守卫（qiankun 环境及本地开发独立运行环境生效）
    *
-   * 问题：子应用在 qiankun 环境首次挂载时，Vue Router 的初始路由解析可能因
+   * 问题：子应用首次挂载时，Vue Router 的初始路由解析可能因
    * 时序问题无法正确匹配浏览器 URL 对应的子路径，导致 catch-all 路由触发并
    * 重定向到默认工作台页面。
    *
    * 原理：beforeEach 在 Vue Router 调用 history.replaceState 之前执行，
-   * 此时 window.location.pathname 仍然是主应用导航设置的正确 URL。
+   * 此时 window.location.pathname 仍然是导航设置的正确 URL。
    * 守卫从中提取子应用子路径，与 Vue Router 解析的目标路径对比，
    * 若不一致则覆盖为正确路径。
    */
-  if (isInQiankun) {
+  if (isInQiankun || (!isJSP && !isStandaloneDeploy)) {
     let isFirstNavigation = true;
     router.beforeEach((to: any) => {
       if (!isFirstNavigation) return true;

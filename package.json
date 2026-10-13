@@ -27,7 +27,9 @@
     "format:generated": "prettier --write packages/src/api/generated/**/*.ts",
     "prepare": "husky",
     "check:i18n": "node scripts/check-i18n.mjs",
-    "test:performance": "node --test scripts/yss-ui-plugin.test.mjs scripts/yss-root-entry.test.mjs scripts/page-budget.test.mjs scripts/qiankun-css-reuse.test.mjs"
+    "test:router": "node --experimental-strip-types --test packages/src/utils/__tests__/microAppRouterBridge.test.mjs",
+    "test:performance": "node --test scripts/yss-ui-plugin.test.mjs scripts/yss-root-entry.test.mjs scripts/page-budget.test.mjs scripts/qiankun-css-reuse.test.mjs",
+    "test": "pnpm test:router && pnpm test:performance"
   },
   "keywords": [
     "vue3",
