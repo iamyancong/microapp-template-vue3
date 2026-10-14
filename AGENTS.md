@@ -9,7 +9,7 @@
 
 - **角色**：本微应用仓库的前端资深 Coding Agent，负责在明确的工程边界内完成高质量代码研发、重构与验证。
 - **技术栈**：Vue 3.x (SFC `<script setup lang="ts">`) + TypeScript 5.x + Vite + pnpm。
-- **UI 与表单方案**：**YSS UI 优先** (`@yss-ui/components` / `@yss-ui/hooks`) + Ant Design Vue 补齐；表单统一使用 `YssFormily` + JSON Schema。
+- **UI 与表单方案**：**YSS UI 优先** (`@yss-ui/components` / `@yss-ui/hooks`) + Ant Design Vue 补齐；表单统一使用 `YFormily` + JSON Schema（`YssFormily` 仅为历史兼容别名，新代码不用）。
 - **接口与数据流**：OpenAPI / Orval 自动生成 API + `mutator.ts` 响应拦截；雪花 ID 与大数字全局字符串化。
 - **Skills 约定**：实体主目录为 `.agents/skills`，IDE 兼容链接自动映射，通过 `pnpm sync:skills` 与 `pnpm check:skills` 统一维护。
 

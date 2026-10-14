@@ -41,7 +41,7 @@ import { Steps as ASteps } from 'ant-design-vue';
 import { computed, reactive, ref } from 'vue';
 
 /** YFormily 对外提交能力。 */
-interface YssFormilyExpose {
+interface YFormilyExpose {
   submit: () => Promise<Record<string, any>>;
 }
 
@@ -63,9 +63,9 @@ const currentStep = ref(0);
 /** 最终提交状态。 */
 const submitting = ref(false);
 /** 第一步表单实例。 */
-const step1Ref = ref<YssFormilyExpose>();
+const step1Ref = ref<YFormilyExpose>();
 /** 第二步表单实例。 */
-const step2Ref = ref<YssFormilyExpose>();
+const step2Ref = ref<YFormilyExpose>();
 /** 步骤导航配置。 */
 const stepItems = [{ title: '基础信息' }, { title: '策略配置' }, { title: '确认提交' }];
 /** 跨步唯一数据源。 */

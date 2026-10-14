@@ -78,7 +78,7 @@ module.exports = {
           },
           {
             name: '@formily/antdv',
-            message: '禁止直接导入 @formily/antdv。业务表单请统一使用 @yss-ui/components 的 YssFormily + JSON Schema。',
+            message: '禁止直接导入 @formily/antdv。业务表单请统一使用 @yss-ui/components 的 YFormily + JSON Schema。',
           },
         ],
       },
