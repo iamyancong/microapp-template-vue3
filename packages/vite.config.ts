@@ -106,6 +106,8 @@ export default defineConfig(({ mode, command }) => {
         [apiBase]: {
           target: proxyTarget,
           changeOrigin: true,
+          cookieDomainRewrite: 'localhost',
+          cookiePathRewrite: '/',
           // rewrite: (path) => path.replace(new RegExp(`^${apiBase}`), '')
         },
       },

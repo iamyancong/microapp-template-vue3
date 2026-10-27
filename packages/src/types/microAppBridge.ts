@@ -24,6 +24,8 @@ export interface MicroAppBridgeProps {
   readonly locale?: string;
   /** 门户语言修订号，用于忽略过期更新。 */
   readonly localeRevision?: number;
+  /** 认证架构模式：bff 模式（HttpOnly Cookie凭据）或 local_token 模式（localStorage Bearer token） */
+  readonly authMode?: 'bff' | 'local_token';
 }
 
 /** qiankun 生命周期额外提供的容器字段。 */

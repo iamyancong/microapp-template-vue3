@@ -2,10 +2,17 @@
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
-import { message, Textarea } from 'ant-design-vue';
+import { message, Textarea, RadioGroup, RadioButton } from 'ant-design-vue';
 import { YButton } from '@yss-ui/components';
-import { KeyOutlined, SafetyCertificateOutlined, ArrowRightOutlined, DeleteOutlined } from '@ant-design/icons-vue';
+import {
+  KeyOutlined,
+  SafetyCertificateOutlined,
+  ArrowRightOutlined,
+  DeleteOutlined,
+  ApiOutlined,
+} from '@ant-design/icons-vue';
 import LocalePicker from '@/components/LocalePicker/index.vue';
+import { getAuthMode, setAuthMode, type AuthMode } from '@/utils/auth';
 
 defineOptions({ name: 'LoginPage' });
 
@@ -13,15 +20,25 @@ const { t } = useI18n();
 const router = useRouter();
 const tokenInput = ref('');
 const isSubmitting = ref(false);
+const activeMode = ref<AuthMode>('local_token');
 const isDev = import.meta.env.MODE.includes('development') || import.meta.env.DEV;
 const appName = import.meta.env.VITE_SUB_APP_NAME || '微应用';
 
 onMounted(() => {
+  activeMode.value = getAuthMode();
   const currentToken = localStorage.getItem('access_token');
   if (currentToken) {
     tokenInput.value = currentToken.replace(/^"|"$/g, '');
   }
 });
+
+const handleModeChange = (e: any) => {
+  const newMode = e.target.value as AuthMode;
+  activeMode.value = newMode;
+  setAuthMode(newMode);
+  localStorage.setItem('auth_mode', newMode);
+  message.info(`已切换为 ${newMode === 'bff' ? 'BFF 会话认证模式' : '传统 Token 模式'}`);
+};
 
 const handleSaveToken = () => {
   const token = tokenInput.value.trim();
@@ -33,12 +50,28 @@ const handleSaveToken = () => {
   isSubmitting.value = true;
   try {
     localStorage.setItem('access_token', token);
+    localStorage.setItem('auth_mode', 'local_token');
+    setAuthMode('local_token');
     message.success(t('login.saveSuccess'));
     setTimeout(() => {
       router.push('/');
     }, 500);
   } catch {
     message.error(t('login.saveError'));
+  } finally {
+    isSubmitting.value = false;
+  }
+};
+
+const handleEnterWithBff = () => {
+  isSubmitting.value = true;
+  try {
+    localStorage.setItem('auth_mode', 'bff');
+    setAuthMode('bff');
+    message.success('已切换为 BFF 模式进入系统');
+    setTimeout(() => {
+      router.push('/');
+    }, 300);
   } finally {
     isSubmitting.value = false;
   }
@@ -68,28 +101,58 @@ const handleClearToken = () => {
       </div>
 
       <div class="form-body">
-        <div class="input-group">
-          <label for="access-token-input" class="input-label"> <KeyOutlined /> Access Token </label>
-          <Textarea
-            id="access-token-input"
-            v-model:value="tokenInput"
-            :placeholder="$t('login.tokenPlaceholder')"
-            :rows="4"
-            class="token-textarea"
-            allow-clear
-          />
+        <div class="mode-selector">
+          <label class="input-label"><ApiOutlined /> 认证架构模式</label>
+          <RadioGroup v-model:value="activeMode" button-style="solid" class="mode-radios" @change="handleModeChange">
+            <RadioButton value="local_token">Token 模式 (兼容)</RadioButton>
+            <RadioButton value="bff">BFF 模式 (推荐)</RadioButton>
+          </RadioGroup>
         </div>
 
-        <div class="action-buttons">
-          <YButton type="primary" size="large" block :loading="isSubmitting" @click="handleSaveToken">
-            {{ $t('login.saveAndEnter') }}
-            <ArrowRightOutlined />
-          </YButton>
+        <template v-if="activeMode === 'local_token'">
+          <div class="input-group">
+            <label for="access-token-input" class="input-label"> <KeyOutlined /> Access Token </label>
+            <Textarea
+              id="access-token-input"
+              v-model:value="tokenInput"
+              :placeholder="$t('login.tokenPlaceholder')"
+              :rows="4"
+              class="token-textarea"
+              allow-clear
+            />
+          </div>
 
-          <YButton v-if="tokenInput" danger type="text" block class="clear-btn" @click="handleClearToken">
-            <DeleteOutlined /> {{ $t('login.clearToken') }}
-          </YButton>
-        </div>
+          <div class="action-buttons">
+            <YButton type="primary" size="large" block :loading="isSubmitting" @click="handleSaveToken">
+              {{ $t('login.saveAndEnter') }}
+              <ArrowRightOutlined />
+            </YButton>
+
+            <YButton v-if="tokenInput" danger type="text" block class="clear-btn" @click="handleClearToken">
+              <DeleteOutlined /> {{ $t('login.clearToken') }}
+            </YButton>
+          </div>
+        </template>
+
+        <template v-else>
+          <div class="bff-intro-box">
+            <p class="bff-tip-text">
+              当前为 <strong>BFF 架构会话模式</strong>。接口请求会自动携带浏览器凭证 (HttpOnly Cookie)，无需手动维护
+              access_token。
+            </p>
+            <p class="bff-sub-text">
+              若本地开发已通过 Vite 代理连接至 BFF
+              且已登录，点击下方按钮直接进入；若未登录，可先在浏览器访问统一门户登录。
+            </p>
+          </div>
+
+          <div class="action-buttons">
+            <YButton type="primary" size="large" block :loading="isSubmitting" @click="handleEnterWithBff">
+              以 BFF 会话进入系统
+              <ArrowRightOutlined />
+            </YButton>
+          </div>
+        </template>
       </div>
 
       <div v-if="isDev" class="footer-tips">
@@ -167,6 +230,58 @@ const handleClearToken = () => {
 }
 
 .form-body {
+  .mode-selector {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 20px;
+
+    .input-label {
+      display: flex;
+      align-items: center;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-color, rgba(0, 0, 0, 0.88));
+      margin-bottom: 8px;
+
+      .anticon {
+        color: var(--primary-color, #3371ff);
+        margin-right: 4px;
+      }
+    }
+
+    .mode-radios {
+      display: flex;
+      width: 100%;
+
+      :deep(.ant-radio-button-wrapper) {
+        flex: 1;
+        text-align: center;
+      }
+    }
+  }
+
+  .bff-intro-box {
+    background: rgba(var(--primary-color-rgb), 0.05);
+    border: 1px solid rgba(var(--primary-color-rgb), 0.15);
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 20px;
+
+    .bff-tip-text {
+      font-size: 13px;
+      color: var(--text-color, rgba(0, 0, 0, 0.88));
+      margin-bottom: 8px;
+      line-height: 1.6;
+    }
+
+    .bff-sub-text {
+      font-size: 12px;
+      color: var(--text-color-secondary, rgba(0, 0, 0, 0.65));
+      margin: 0;
+      line-height: 1.5;
+    }
+  }
+
   .input-group {
     margin-bottom: 20px;
 

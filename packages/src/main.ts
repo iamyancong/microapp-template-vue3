@@ -24,6 +24,7 @@ import { renderWithQiankun, qiankunWindow } from 'vite-plugin-qiankun/dist/helpe
 import { createStyleManager } from './utils/styleManager';
 import { resolveMicroAppFullPath, setupMicroAppRouterBridge } from './utils/microAppRouterBridge';
 import type { MicroAppLifecycleProps } from './types/microAppBridge';
+import { resolveAuthMode } from '@/utils/auth';
 import { i18n, installLocale } from '@/locales';
 import { initializeLocale, applyHostLocale, startLocaleSync } from '@/locales/bridge';
 
@@ -56,6 +57,8 @@ function resolveActiveRule(props: MicroAppLifecycleProps): string {
  * @param props 微应用生命周期 Props
  */
 async function render(props: MicroAppLifecycleProps = {}) {
+  // 初始化/自适应当前认证模式（BFF 模式或 local_token 模式）
+  resolveAuthMode(props);
   localeEventCleanup?.();
   localeEventCleanup = undefined;
   await initializeLocale(props, !qiankunWindow.__POWERED_BY_QIANKUN__);

@@ -3,6 +3,7 @@ import { getLocaleHeaders } from '@/locales/protocol';
 import axios, { type AxiosRequestConfig } from 'axios'
 import JSONbig from 'json-bigint'
 import { handleErrorResponse } from '@/utils'
+import { getAuthMode, getAccessToken } from '@/utils/auth'
 
 import { handleBusinessError } from './errorHandler';
 
@@ -92,13 +93,17 @@ axiosInstance.interceptors.request.use(
       return config
     }
 
-    // 其他接口添加认证 token
-    const token = localStorage.getItem('access_token')
-    if (token) {
-      // 去除 token 首尾可能存在的双引号
-      const cleanToken = token.replace(/^"|"$/g, '')
-      config.headers = config.headers || {}
-      config.headers.Authorization = `Bearer ${cleanToken}`
+    // 根据认证模式处理凭据
+    const authMode = getAuthMode();
+    if (authMode === 'bff') {
+      // BFF 架构模式：携带 Cookie 会话凭据，无需前端拼接 Authorization 请求头
+      config.withCredentials = true;
+    } else {
+      // 传统 Token 模式：从 localStorage 读取 access_token 注入 Authorization 请求头
+      const token = getAccessToken();
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
     }
 
     // 如果接口url 包含 downLoad 或者 export 需要添加 responseType: 'blob'
