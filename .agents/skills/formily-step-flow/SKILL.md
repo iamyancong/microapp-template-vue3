@@ -1,6 +1,6 @@
 ---
 name: formily-step-flow
-description: 指导 YSS UI 分步表单与流程录入；当需要 Ant Design Vue Steps、多 YFormily 独立校验、跨步数据保留、确认预览或最终聚合提交时使用。
+description: 指导基于 Ant Design Vue Steps 与多 YFormily 实例的分步表单与向导流程录入，覆盖各步骤独立校验、跨步数据持久保留、最终确认预览与聚合提交闭环；当业务需要分步录入、分阶段流程或多步骤向导时使用。单页普通表单请使用 formily-foundation，单纯字段联动请使用 formily-linkage-effects。
 ---
 
 # Formily Step Flow Skill
@@ -41,7 +41,7 @@ import { Steps as ASteps } from 'ant-design-vue';
 import { computed, reactive, ref } from 'vue';
 
 /** YFormily 对外提交能力。 */
-interface YFormilyExpose {
+interface YssFormilyExpose {
   submit: () => Promise<Record<string, any>>;
 }
 
@@ -63,9 +63,9 @@ const currentStep = ref(0);
 /** 最终提交状态。 */
 const submitting = ref(false);
 /** 第一步表单实例。 */
-const step1Ref = ref<YFormilyExpose>();
+const step1Ref = ref<YssFormilyExpose>();
 /** 第二步表单实例。 */
-const step2Ref = ref<YFormilyExpose>();
+const step2Ref = ref<YssFormilyExpose>();
 /** 步骤导航配置。 */
 const stepItems = [{ title: '基础信息' }, { title: '策略配置' }, { title: '确认提交' }];
 /** 跨步唯一数据源。 */

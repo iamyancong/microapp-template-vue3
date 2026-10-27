@@ -43,8 +43,8 @@ importers:
         specifier: ^0.5.1
         version: 0.5.1
       '@yss-ui/skills-cli':
-        specifier: ^1.0.14
-        version: 1.0.14(@types/node@20.19.11)
+        specifier: ^1.1.1
+        version: 1.1.1(@types/node@20.19.11)
       concurrently:
         specifier: ^8.2.2
         version: 8.2.2
@@ -2217,8 +2217,8 @@ packages:
   '@yss-ui/hooks@1.1.3':
     resolution: {integrity: sha512-OmcCjXuUOxnCpEwBdL7vXhzYwKYEI+f7QxIS2rJ0SnfK6NWs+JnkDSb1wPfxKdGw6BMPkRKd91JRJ2CjmHUqhg==, tarball: https://registry.npmjs.org/@yss-ui/hooks/-/hooks-1.1.3.tgz}
 
-  '@yss-ui/skills-cli@1.0.14':
-    resolution: {integrity: sha512-qnxeVRf10ugfh6zl2WtcIn5FyA/f6MkEeD+Zx751enrPBNDYS6guWoiu838saUJHuWwhawZZZLLZeSGXcmSZpA==}
+  '@yss-ui/skills-cli@1.1.1':
+    resolution: {integrity: sha512-x/WpM+BKIz6KW2AW5HxuiyILMml5phJUShCrigZdHoTpAGAVXQKoi1zOyu2mtZOTzXyuDlkELq2YcUcRZnS2ew==}
     hasBin: true
 
   '@yss-ui/theme@1.0.3':
@@ -8246,7 +8246,7 @@ snapshots:
       - '@vue/composition-api'
       - typescript
 
-  '@yss-ui/skills-cli@1.0.14(@types/node@20.19.11)':
+  '@yss-ui/skills-cli@1.1.1(@types/node@20.19.11)':
     dependencies:
       chalk: 4.1.2
       commander: 11.1.0

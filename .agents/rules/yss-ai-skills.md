@@ -11,7 +11,6 @@ trigger: always_on
 - yss-ui-business-page-generation: .agents/skills/yss-ui-business-page-generation/SKILL.md
 - theme-token-usage: .agents/skills/theme-token-usage/SKILL.md
 - component-selection-imports: .agents/skills/component-selection-imports/SKILL.md
-- page-module-development: .agents/skills/page-module-development/SKILL.md
 - page-skeleton: .agents/skills/page-skeleton/SKILL.md
 - page-list-module: .agents/skills/page-list-module/SKILL.md
 - page-form-module: .agents/skills/page-form-module/SKILL.md
@@ -37,6 +36,9 @@ trigger: always_on
 - formily-mode-slot-detail: .agents/skills/formily-mode-slot-detail/SKILL.md
 - formily-step-flow: .agents/skills/formily-step-flow/SKILL.md
 - i18n-locale-management: .agents/skills/i18n-locale-management/SKILL.md
+- yss-create-microapp: .agents/skills/yss-create-microapp/SKILL.md
+- create-yss-app: .agents/skills/create-yss-app/SKILL.md
+- yss-frontend-dev: .agents/skills/yss-frontend-dev/SKILL.md
 
 ## Mandatory Workflow
 

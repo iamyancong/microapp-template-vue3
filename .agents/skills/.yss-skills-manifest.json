@@ -5,7 +5,6 @@
     "yss-ui-business-page-generation",
     "theme-token-usage",
     "component-selection-imports",
-    "page-module-development",
     "page-skeleton",
     "page-list-module",
     "page-form-module",
@@ -30,6 +29,9 @@
     "formily-linkage-effects",
     "formily-mode-slot-detail",
     "formily-step-flow",
-    "i18n-locale-management"
+    "i18n-locale-management",
+    "yss-create-microapp",
+    "create-yss-app",
+    "yss-frontend-dev"
   ]
 }
