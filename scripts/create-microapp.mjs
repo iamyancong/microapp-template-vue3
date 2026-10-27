@@ -505,7 +505,10 @@ async function main() {
     ignore: [
       '.git',
       '.git/**',
+      '.agent/**',
       '.cursor/**',
+      '.claude/**',
+      '.trae/**',
       '.DS_Store',
       'node_modules/**',
       'packages/node_modules/**',
