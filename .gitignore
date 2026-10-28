@@ -86,13 +86,15 @@ coverage/
 # Temporary folders
 tmp/
 temp/
-.cursor/
 packages/dist/
 packages/dist-jsp*
 packages/node_modules/
 packages/.DS_Store
 
-# IDE Skills Symlinks & Local Workspace
-.agent/
-.claude/
-.trae/
+# --- YSS AI SKILLS GITIGNORE START ---
+# IDE Skills 兼容软链接（主目录 .agents/skills 需入库；以下路径由 @yss-ui/skills-cli 本地派生，标记块由 CLI 托管请勿手改）
+.agent/skills
+.cursor/skills
+.claude/skills
+.trae/skills
+# --- YSS AI SKILLS GITIGNORE END ---

@@ -56,10 +56,10 @@ pnpm-lock.yaml
 # --- YSS AI SKILLS IGNORE START ---
 # 官方 Skills 为发布包派生资产，由 @yss-ui/skills-cli 托管同步，严禁本地 Prettier 格式化改写产生漂移
 .agents/
-.agent/
-.cursor/
-.claude/
-.trae/
-.codex/
+.agent/skills
+.cursor/skills
+.claude/skills
+.trae/skills
+.codex/skills
 .cursorrules
 # --- YSS AI SKILLS IGNORE END ---
