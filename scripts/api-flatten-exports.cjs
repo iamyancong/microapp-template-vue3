@@ -57,38 +57,59 @@ const flattenGetApi = (content) => {
   const before = content.slice(0, getApiStart);
   const afterGetApiStart = content.slice(getApiStart + GET_API_MARKER.length);
 
-  const returnIndex = afterGetApiStart.indexOf('\n  return {');
-  if (returnIndex === -1) {
-    throw new Error('[api-flatten] return block not found inside getApi');
-  }
+  // 兼容 Orval 内部 Prettier 格式化后（2 空格缩进）与未格式化（.prettierignore 忽略 generated 目录时）两种输出结构
+  let functionLines;
+  let returnLines;
+  let afterGetApi;
 
-  const functionsBlock = afterGetApiStart.slice(0, returnIndex);
-  const returnAndClose = afterGetApiStart.slice(returnIndex);
+  if (afterGetApiStart.includes('\n  return {')) {
+    const returnIndex = afterGetApiStart.indexOf('\n  return {');
+    const functionsBlock = afterGetApiStart.slice(0, returnIndex);
+    const returnAndClose = afterGetApiStart.slice(returnIndex);
 
-  const returnCloseIndex = returnAndClose.lastIndexOf('\n  };');
-  if (returnCloseIndex === -1) {
-    throw new Error('[api-flatten] return block closing not found');
-  }
-
-  const returnBlock = returnAndClose.slice(0, returnCloseIndex + '\n  };'.length);
-  const afterGetApi = returnAndClose.slice(returnCloseIndex + '\n  };'.length).replace(/^\n\};\n?/, '\n');
-
-  const functionLines = functionsBlock.split('\n').map(line => {
-    if (line.startsWith('  const ')) {
-      return line.replace(/^ {2}const /, 'export const ');
+    const returnCloseIndex = returnAndClose.lastIndexOf('\n  };');
+    if (returnCloseIndex === -1) {
+      throw new Error('[api-flatten] return block closing not found');
     }
 
-    return dedentLine(line, 2);
-  });
+    const returnBlock = returnAndClose.slice(0, returnCloseIndex + '\n  };'.length);
+    afterGetApi = returnAndClose.slice(returnCloseIndex + '\n  };'.length).replace(/^\n\};\n?/, '\n');
 
-  const returnBodyMatch = returnBlock.match(/\n {2}return \{([\s\S]*)\n {2}\};/);
-  if (!returnBodyMatch) {
-    throw new Error('[api-flatten] unable to parse return members from getApi');
+    functionLines = functionsBlock.split('\n').map(line => {
+      if (line.startsWith('  const ')) {
+        return line.replace(/^ {2}const /, 'export const ');
+      }
+
+      return dedentLine(line, 2);
+    });
+
+    const returnBodyMatch = returnBlock.match(/\n {2}return \{([\s\S]*)\n {2}\};/);
+    if (!returnBodyMatch) {
+      throw new Error('[api-flatten] unable to parse return members from getApi');
+    }
+
+    returnLines = `export const getApi = () => ({${returnBodyMatch[1]}\n});`;
+  } else {
+    const unformattedReturnMatch = afterGetApiStart.match(/\nreturn \{([^}]*)\}\};/);
+    if (!unformattedReturnMatch || unformattedReturnMatch.index === undefined) {
+      throw new Error('[api-flatten] return block not found inside getApi');
+    }
+
+    const functionsBlock = afterGetApiStart.slice(0, unformattedReturnMatch.index);
+    afterGetApi = afterGetApiStart.slice(unformattedReturnMatch.index + unformattedReturnMatch[0].length);
+
+    functionLines = functionsBlock.split('\n').map(line => {
+      if (line.startsWith('const ')) {
+        return line.replace(/^const /, 'export const ');
+      }
+
+      return line;
+    });
+
+    returnLines = `export const getApi = () => ({ ${unformattedReturnMatch[1]} });`;
   }
 
-  const returnLines = `export const getApi = () => ({${returnBodyMatch[1]}\n});`;
-
-  const flattened = `${before}${functionLines.join('\n')}\n${returnLines}${afterGetApi}`;
+  const flattened = `${before.replace(/[ \t]+$/, '')}${functionLines.join('\n')}\n${returnLines}${afterGetApi}`;
 
   const withFnTypes = flattened.replace(
     /ReturnType<ReturnType<typeof getApi>\['([^']+)'\]>/g,
