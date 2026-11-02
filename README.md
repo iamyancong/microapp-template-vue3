@@ -98,7 +98,7 @@ node scripts/micro-manager.js dev
 # qiankun微应用方式构建
 pnpm build
 
-# CI / 部署中心全量校验并构建（先执行 verify 全量门禁再构建）
+# CI 全量校验并构建（先执行 verify 全量门禁再构建）
 pnpm build:ci
 
 # 微应用单独构建访问（用于独立部署而非微前端集成）
@@ -108,7 +108,7 @@ pnpm build:standalone
 node scripts/micro-manager.js build
 ```
 
-> **提示**：在 `yuyan-app` 部署中心，部署目标的构建命令请填 `pnpm build:ci`。
+> **提示**：在 `yuyan-app` 部署中心，部署目标的构建命令请填 `pnpm build`；`pnpm build:ci` 用于 CI 和本地。部署服务器上全量 ESLint 运行约 5 分钟后会被系统强制终止（原因未查明），因此部署不要用 `build:ci`。
 
 ### 预览构建结果
 
@@ -259,11 +259,11 @@ node scripts/split-openapi.js all
 # 本地生产构建
 pnpm build
 
-# CI / 部署中心构建（推荐：包含全量 Lint 循环依赖检查、格式与类型校验）
+# CI 构建（推荐：包含全量 Lint 循环依赖检查、格式与类型校验）
 pnpm build:ci
 ```
 
-> **提示**：在 `yuyan-app` 部署中心，部署目标的构建命令请填 `pnpm build:ci`。
+> **提示**：在 `yuyan-app` 部署中心，部署目标的构建命令请填 `pnpm build`；`pnpm build:ci` 用于 CI 和本地。部署服务器上全量 ESLint 运行约 5 分钟后会被系统强制终止（原因未查明），因此部署不要用 `build:ci`。
 
 ### 部署到服务器
 
