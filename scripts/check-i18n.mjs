@@ -41,7 +41,7 @@ try {
   const missing = [];
   for (const file of await sourceFiles(sourceRoot)) {
     const content = await readFile(file, 'utf8');
-    for (const match of content.matchAll(/\b(?:t|translate|\$t)\(\s*(['"])([\w.\-]+)\1/g)) {
+    for (const match of content.matchAll(/\b(?:t|translate|\$t)\(\s*(['"])([\w.-]+)\1/g)) {
       if (!(match[2] in base) && !Object.keys(base).some(key => key.startsWith(`${match[2]}.`))) missing.push(`${path.relative(sourceRoot, file)}: ${match[2]}`);
     }
   }

@@ -8,8 +8,8 @@ build/
 *.min.js
 *.min.css
 
-# API 自动生成的文件
-# packages/src/api/generated/
+# API 自动生成的文件（generate:api 脚本通过 --ignore-path .gitignore 单独格式化）
+packages/src/api/generated/
 packages/src/api/index.ts
 packages/src/api/mutator.ts
 

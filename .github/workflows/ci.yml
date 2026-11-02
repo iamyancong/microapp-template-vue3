@@ -33,11 +33,8 @@ jobs:
           pnpm check:skills
           pnpm check:agents
 
-      - name: Lint Check
-        run: pnpm lint:check
-
-      - name: Type Check
-        run: pnpm type-check
+      - name: Verify (Full Lint with Cycle Check & Type Check)
+        run: pnpm verify
 
       - name: Performance & Bundle Budget Test
         run: pnpm test:performance

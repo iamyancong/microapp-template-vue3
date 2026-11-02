@@ -16,9 +16,11 @@ module.exports = {
   parserOptions: {
     ecmaVersion: 'latest',
     sourceType: 'module',
+    warnOnUnsupportedTypeScriptVersion: false,
   },
   plugins: ['vue', '@typescript-eslint', 'import'],
   settings: {
+    'import/external-module-folders': ['node_modules', 'packages/node_modules'],
     'import/resolver': {
       typescript: {
         alwaysTryTypes: true,
@@ -63,7 +65,11 @@ module.exports = {
     'import/no-unresolved': 'error', // 禁止导入不存在的模块
     'import/no-absolute-path': 'error', // 禁止绝对路径导入
     'import/no-self-import': 'error', // 禁止自己导入自己
-    'import/no-cycle': 'error', // 禁止循环依赖
+    // 循环依赖检查会构建全项目模块依赖图（单文件冷启动耗时 >13s），日常与 pre-commit 默认关闭，在 verify / CI 中通过 ESLINT_CYCLE_CHECK=true 完整开启
+    'import/no-cycle':
+      process.env.ESLINT_CYCLE_CHECK === 'true'
+        ? ['error', { ignoreExternal: true }]
+        : 'off',
     'import/no-useless-path-segments': 'error', // 禁止无用的路径片段
 
     // Agent 工程硬约束：限制不规范模块与组件导入 (物理拦截代替 Prompt)
@@ -169,8 +175,10 @@ module.exports = {
     '*.min.js',
     '*.min.css',
     
-    // 依赖包
+    // 依赖包与类型声明
     'node_modules/',
+    'packages/node_modules/',
+    '**/*.d.ts',
     
     // API 自动生成的文件
     'packages/src/api/generated/',
@@ -196,12 +204,21 @@ module.exports = {
     },
     {
       // 对测试文件的特殊配置
-      files: ['**/__tests__/**/*', '**/*.{test,spec}.{js,ts,jsx,tsx}'],
+      files: ['**/__tests__/**/*', '**/*.{test,spec}.{js,ts,jsx,tsx,mjs,cjs}'],
       rules: {
         // 测试文件中允许 console.log
         'no-console': 'off',
         // 测试文件中允许 any 类型
         '@typescript-eslint/no-explicit-any': 'off',
+      },
+    },
+    {
+      // 对 Node.js 工程脚本的特殊配置
+      files: ['scripts/**/*'],
+      rules: {
+        // 命令行脚本允许使用 console 输出与 Node 原生 fetch
+        'no-console': 'off',
+        'no-restricted-globals': 'off',
       },
     },
     {

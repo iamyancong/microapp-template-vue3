@@ -95,8 +95,11 @@ node scripts/micro-manager.js dev
 ### 构建项目
 
 ```bash
-# # qiankun微应用方式构建
+# qiankun微应用方式构建
 pnpm build
+
+# CI / 部署中心全量校验并构建（先执行 verify 全量门禁再构建）
+pnpm build:ci
 
 # 微应用单独构建访问（用于独立部署而非微前端集成）
 pnpm build:standalone
@@ -104,6 +107,8 @@ pnpm build:standalone
 # 或使用管理脚本构建
 node scripts/micro-manager.js build
 ```
+
+> **提示**：在 `yuyan-app` 部署中心，部署目标的构建命令请填 `pnpm build:ci`。
 
 ### 预览构建结果
 
@@ -118,14 +123,17 @@ node scripts/micro-manager.js preview
 ### 代码检查和格式化
 
 ```bash
-# 运行 ESLint 检查
+# 运行 ESLint 检查（带本地缓存）
 pnpm lint
 
-# 自动修复 ESLint 问题
+# 自动修复 ESLint 问题（带本地缓存）
 pnpm lint:fix
 
 # TypeScript 类型检查
 pnpm type-check
+
+# 全量质量门禁（开启循环依赖检查 + 格式检查 + 类型检查）
+pnpm verify
 ```
 
 ### API 同步和生成
@@ -248,8 +256,14 @@ node scripts/split-openapi.js all
 ### 构建生产版本
 
 ```bash
+# 本地生产构建
 pnpm build
+
+# CI / 部署中心构建（推荐：包含全量 Lint 循环依赖检查、格式与类型校验）
+pnpm build:ci
 ```
+
+> **提示**：在 `yuyan-app` 部署中心，部署目标的构建命令请填 `pnpm build:ci`。
 
 ### 部署到服务器
 

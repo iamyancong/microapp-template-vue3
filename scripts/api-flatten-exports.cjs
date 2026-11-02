@@ -75,13 +75,13 @@ const flattenGetApi = (content) => {
 
   const functionLines = functionsBlock.split('\n').map(line => {
     if (line.startsWith('  const ')) {
-      return line.replace(/^  const /, 'export const ');
+      return line.replace(/^ {2}const /, 'export const ');
     }
 
     return dedentLine(line, 2);
   });
 
-  const returnBodyMatch = returnBlock.match(/\n  return \{([\s\S]*)\n  \};/);
+  const returnBodyMatch = returnBlock.match(/\n {2}return \{([\s\S]*)\n {2}\};/);
   if (!returnBodyMatch) {
     throw new Error('[api-flatten] unable to parse return members from getApi');
   }

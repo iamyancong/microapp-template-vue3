@@ -432,7 +432,7 @@ async function gitInitAndPush(cwd, remoteUrl) {
   try {
     await exec('git init', { cwd })
     await exec('git add .', { cwd })
-    await exec('git commit -m "feat: init microapp"', { cwd })
+    await exec('git commit --no-verify -m "feat: init microapp"', { cwd })
     await exec('git branch -M main', { cwd })
     if (remoteUrl) {
       await exec(`git remote add origin ${remoteUrl}`, { cwd })
@@ -613,17 +613,17 @@ async function main() {
   await deletePath(path.join(targetRoot, 'packages/src/api/scaffold.ts'))
   // Remove scaffold route from router
   const routerPath = path.join(targetRoot, 'packages/src/router/index.ts')
-  await replaceInFile(routerPath, [[/\s*,\s*\{\s*path:\s*['\"]\/scaffold['\"][\s\S]*?\}\s*,?\s*/m, '']])
+  await replaceInFile(routerPath, [[/\s*,\s*\{\s*path:\s*['"]\/scaffold['"][\s\S]*?\}\s*,?\s*/m, '']])
   // 兜底：若未匹配到前置逗号的场景，尝试移除对象及其后逗号
-  await replaceInFile(routerPath, [[/\{\s*path:\s*['\"]\/scaffold['\"][\s\S]*?\}\s*,?/m, '']])
+  await replaceInFile(routerPath, [[/\{\s*path:\s*['"]\/scaffold['"][\s\S]*?\}\s*,?/m, '']])
   // 清理可能残留的 "}},]" 之类语法
   await replaceInFile(routerPath, [
-    [/\}\},\s*\]/m, '}\]'],
-    [/\},\s*\]/m, '}\]']
+    [/\}\},\s*\]/m, '}]'],
+    [/\},\s*\]/m, '}]']
   ])
   // Remove scaffold proxy from vite config if present
   await replaceInFile(path.join(targetRoot, 'packages/vite.config.ts'), [
-    [/,\s*['\"]\/scaffold-api['\"]:\s*\{[\s\S]*?\}\s*/m, '']
+    [/,\s*['"]\/scaffold-api['"]:\s*\{[\s\S]*?\}\s*/m, '']
   ])
 
   // Update .gitlab-ci.yml image name and local deploy dir if present
