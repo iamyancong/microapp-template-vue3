@@ -19,7 +19,7 @@ export function getAuthMode(): AuthMode {
  * 显式设置认证模式
  * @param mode 目标模式
  */
-export function setAuthMode(mode: AuthMode) {
+export function setAuthMode(mode: AuthMode): void {
   currentAuthMode.value = mode;
 }
 
@@ -38,12 +38,49 @@ export function isLocalTokenMode(): boolean {
 }
 
 /**
- * 获取当前存储的 access_token（剔除可能存在的双引号）
+ * 获取当前存储的 access_token（剔除可能存在的双引号及无效空串/脏数据）
  */
 export function getAccessToken(): string | null {
-  const token = localStorage.getItem('access_token');
-  if (!token) return null;
-  return token.replace(/^"|"$/g, '').trim();
+  try {
+    const token = localStorage.getItem('access_token');
+    if (!token) return null;
+    const cleaned = token.replace(/^"|"$/g, '').trim();
+    if (!cleaned || cleaned === 'null' || cleaned === 'undefined') return null;
+    return cleaned;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * 将测试环境的 Cookie 字符串写入当前本地 localhost 域
+ * @param cookieStr 形如 "SESSION=xxx; satoken=yyy" 的 Cookie 字符串
+ */
+export function applyDevCookie(cookieStr: string): void {
+  if (!cookieStr) return;
+  const items = cookieStr.split(';');
+  for (const item of items) {
+    const trimmed = item.trim();
+    if (!trimmed) continue;
+    // 写入当前域，有效期 7 天
+    document.cookie = `${trimmed}; path=/; max-age=604800; SameSite=Lax`;
+  }
+}
+
+/**
+ * 清除当前本地 localhost 域下的常见会话 Cookie
+ */
+export function clearDevCookie(): void {
+  try {
+    const cookies = document.cookie.split(';');
+    for (const cookie of cookies) {
+      const eqPos = cookie.indexOf('=');
+      const name = eqPos > -1 ? cookie.slice(0, eqPos).trim() : cookie.trim();
+      if (name) {
+        document.cookie = `${name}=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+      }
+    }
+  } catch {}
 }
 
 /**
@@ -66,11 +103,13 @@ export function resolveAuthMode(props?: MicroAppLifecycleProps): AuthMode {
   }
 
   // 2. 读取主应用在 localStorage 中写入的全局认证模式标记
-  const storedMode = localStorage.getItem('auth_mode');
-  if (storedMode === 'bff' || storedMode === 'local_token') {
-    setAuthMode(storedMode);
-    return storedMode;
-  }
+  try {
+    const storedMode = localStorage.getItem('auth_mode');
+    if (storedMode === 'bff' || storedMode === 'local_token') {
+      setAuthMode(storedMode);
+      return storedMode;
+    }
+  } catch {}
 
   // 3. 检查是否存在旧模式 access_token
   const localToken = getAccessToken();
@@ -90,3 +129,8 @@ export function resolveAuthMode(props?: MicroAppLifecycleProps): AuthMode {
   setAuthMode('local_token');
   return 'local_token';
 }
+
+// 模块加载时执行自适应探测
+try {
+  resolveAuthMode();
+} catch {}

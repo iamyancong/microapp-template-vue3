@@ -28,6 +28,9 @@ export default defineConfig(({ mode, command }) => {
   };
   const base = isProd ? (!isStandalone ? `/${cleanActiveRule}/` : '/') : normalizeBase(activeRule);
 
+  // 开发期 BFF 认证会话兜底缓存（内存）
+  let devAuthCookie = '';
+
   return {
     base: base,
     plugins: [
@@ -43,7 +46,49 @@ export default defineConfig(({ mode, command }) => {
         logger: true,
         watchFiles: true,
       }),
-      // 本地开发独立运行时，访问根路径自动重定向至完整微应用 base
+      // 本地开发独立运行时，提供 BFF Cookie 同步与真实 Set-Cookie 响应支持
+      {
+        name: 'dev-auth-sync',
+        apply: 'serve' as const,
+        configureServer(server: any) {
+          server.middlewares.use((req: any, res: any, next: any) => {
+            if (req.url === '/__dev_auth/set-cookie' && req.method === 'POST') {
+              let body = '';
+              req.on('data', (chunk: any) => {
+                body += chunk;
+              });
+              req.on('end', () => {
+                try {
+                  const data = JSON.parse(body || '{}');
+                  devAuthCookie = (data.cookie || '').trim();
+                  if (devAuthCookie) {
+                    const cookieHeaders = devAuthCookie
+                      .split(';')
+                      .map((c: string) => c.trim())
+                      .filter(Boolean)
+                      .map((c: string) => `${c}; Path=/; SameSite=Lax`);
+                    res.setHeader('Set-Cookie', cookieHeaders);
+                  } else {
+                    res.setHeader('Set-Cookie', [
+                      'SESSION=; Path=/; Max-Age=0',
+                      'satoken=; Path=/; Max-Age=0',
+                      'JSESSIONID=; Path=/; Max-Age=0',
+                    ]);
+                  }
+                  res.writeHead(200, { 'Content-Type': 'application/json' });
+                  res.end(JSON.stringify({ success: true, message: 'Cookie updated successfully' }));
+                } catch (err: any) {
+                  res.writeHead(500, { 'Content-Type': 'application/json' });
+                  res.end(JSON.stringify({ success: false, error: err?.message }));
+                }
+              });
+              return;
+            }
+            next();
+          });
+        },
+      },
+      // 本地开发独立运行时，访问根路径或 /login 自动重定向至完整微应用 base
       {
         name: 'dev-root-redirect',
         apply: 'serve' as const,
@@ -51,9 +96,20 @@ export default defineConfig(({ mode, command }) => {
           server.middlewares.use((req: any, res: any, next: any) => {
             const rawUrl = req.url || '';
             const pathname = rawUrl.split('?')[0];
+            const queryString = rawUrl.includes('?') ? rawUrl.slice(rawUrl.indexOf('?')) : '';
             if (pathname === '/' || pathname === '') {
-              const queryString = rawUrl.includes('?') ? rawUrl.slice(rawUrl.indexOf('?')) : '';
-              res.writeHead(302, { Location: `${base}${queryString}` });
+              res.writeHead(302, {
+                Location: `${base}${queryString}`,
+                'Access-Control-Allow-Origin': '*',
+              });
+              res.end();
+              return;
+            }
+            if (pathname === '/login' || pathname === '/login/') {
+              res.writeHead(302, {
+                Location: `${base}login${queryString}`,
+                'Access-Control-Allow-Origin': '*',
+              });
               res.end();
               return;
             }
@@ -109,6 +165,14 @@ export default defineConfig(({ mode, command }) => {
           cookieDomainRewrite: 'localhost',
           cookiePathRewrite: '/',
           // rewrite: (path) => path.replace(new RegExp(`^${apiBase}`), '')
+          configure: (proxy: any) => {
+            proxy.on('proxyReq', (proxyReq: any) => {
+              // 若浏览器由于安全策略未携带 Cookie 头，但本地已注入 devAuthCookie，则代理层自动补发
+              if (devAuthCookie && !proxyReq.getHeader('cookie')) {
+                proxyReq.setHeader('cookie', devAuthCookie);
+              }
+            });
+          },
         },
       },
     },

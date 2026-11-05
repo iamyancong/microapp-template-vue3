@@ -33,16 +33,22 @@ const redirectToLogin = () => {
 
   // 稍作延迟，确保提示能被用户看到
   const go = () => {
-    const loginPath = '/login';
+    // 判断是否在 qiankun 微前端主应用下
+    const isInQiankun = typeof window !== 'undefined' && Boolean((window as any).__POWERED_BY_QIANKUN__);
+    const activeRule = import.meta.env.VITE_ACTIVE_RULE || `/${import.meta.env.VITE_SUB_APP_NAME || ''}`;
+    const cleanActiveRule = activeRule.endsWith('/') ? activeRule.slice(0, -1) : activeRule;
+    // qiankun 模式下跳主应用门户的 /login；本地独立运行时跳微应用自身完整的 /subApp/{name}/login
+    const loginPath = isInQiankun ? '/login' : `${cleanActiveRule}/login`;
+
     if (isAlreadyOnLoginPage()) return;
 
     try {
       // 在微前端和独立运行场景，统一跳主窗口的登录页
       const topWindow: Window = window.top || window;
-      if (topWindow.location.pathname.includes(loginPath)) return;
+      if (topWindow.location.pathname.includes('/login')) return;
       topWindow.location.assign(loginPath);
     } catch {
-      if (window.location.pathname.includes(loginPath)) return;
+      if (window.location.pathname.includes('/login')) return;
       window.location.assign(loginPath);
     }
   };
