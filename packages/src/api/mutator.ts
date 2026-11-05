@@ -86,6 +86,7 @@ axiosInstance.interceptors.request.use(
     // 注入国际化请求头
     config.headers = config.headers || {};
     Object.assign(config.headers, getLocaleHeaders());
+    config.headers['X-Requested-With'] = 'XMLHttpRequest';
 
     // /oauth2/token 接口不需要携带 token
     const requestUrl = config?.url || ''

@@ -167,9 +167,46 @@ export default defineConfig(({ mode, command }) => {
           // rewrite: (path) => path.replace(new RegExp(`^${apiBase}`), '')
           configure: (proxy: any) => {
             proxy.on('proxyReq', (proxyReq: any) => {
-              // 若浏览器由于安全策略未携带 Cookie 头，但本地已注入 devAuthCookie，则代理层自动补发
+              // 1. 若浏览器由于安全策略未携带 Cookie 头，但本地已注入 devAuthCookie，则代理层自动补发
               if (devAuthCookie && !proxyReq.getHeader('cookie')) {
                 proxyReq.setHeader('cookie', devAuthCookie);
+              }
+
+              // 2. 对齐测试环境 Nginx 代理公共 Header（Host, X-Requested-With 等），避免网关返回 403 Forbidden
+              const targetUrl = (() => {
+                try {
+                  return new URL(proxyTarget);
+                } catch {
+                  return null;
+                }
+              })();
+
+              // 计算目标网关 Host：优先使用 VITE_PROXY_GATEWAY_HOST，
+              // 否则若端口为 8050 则自动对齐网关 8051，其余情况取 target 的 host
+              const gatewayHost =
+                env.VITE_PROXY_GATEWAY_HOST ||
+                (targetUrl
+                  ? targetUrl.port === '8050'
+                    ? `${targetUrl.hostname}:8051`
+                    : targetUrl.host
+                  : undefined);
+              if (gatewayHost) {
+                proxyReq.setHeader('Host', gatewayHost);
+              }
+
+              // 补齐测试环境 Nginx 必带的公共请求头
+              proxyReq.setHeader('X-Requested-With', 'XMLHttpRequest');
+              proxyReq.setHeader(
+                'X-Forwarded-Proto',
+                targetUrl?.protocol ? targetUrl.protocol.replace(':', '') : 'http'
+              );
+              proxyReq.setHeader('X-Real-IP', '127.0.0.1');
+              proxyReq.setHeader('X-Forwarded-For', '127.0.0.1');
+
+              // 3. 将 Origin 和 Referer 伪装成目标后端源，防止网关/安全中间件的跨域或 CSRF 拦截
+              if (targetUrl) {
+                proxyReq.setHeader('Origin', targetUrl.origin);
+                proxyReq.setHeader('Referer', `${targetUrl.origin}/`);
               }
             });
           },
